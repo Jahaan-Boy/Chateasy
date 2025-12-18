@@ -95,3 +95,7 @@ export const logout=async(req,res)=>{
     res.clearCookie("jwt","",{maxAge:0});
     res.status(200).json({success:true,message:"Logout successful"})
 }
+
+export const updateProfile=async(req, res)=>{
+
+}
