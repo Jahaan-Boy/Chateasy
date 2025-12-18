@@ -4,6 +4,8 @@ import bcrypt from 'bcrypt'
 import { generateToken } from '../lib/utils.js';
 import 'dotenv/config'
 import { sendWelcomeEmail } from '../emails/emailHandler.js';
+import cloudinary from '../lib/cloudinary.js';
+
 export const signup=async(req,res)=>{
     const {fullName, email, password}= req.body;
 
@@ -97,5 +99,21 @@ export const logout=async(req,res)=>{
 }
 
 export const updateProfile=async(req, res)=>{
+    try {
+        const {profilePic}= req.body;
+        if(!profilePic){
+            return res.status(400).json({message:"ProfilePic is mandatory"});
+        }
 
+        const userId=req.user._id;
+        
+        const uploadedProfilePic=await cloudinary.uploader.upload(profilePic);
+
+        const updatedUser= await User.findByIdAndUpdate(userId,uploadedProfilePic.secure_url, {new:true});
+
+        return res.status(200).json(updatedUser);
+    } catch (error) {
+        console.log('Error in updateProfile controller');
+        return res.status(500).json({message: "Internal server error"});
+    }
 }
