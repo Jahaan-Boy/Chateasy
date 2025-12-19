@@ -5,25 +5,26 @@ import 'dotenv/config'
 import { sendWelcomeEmail } from '../emails/emailHandler.js';
 import cloudinary from '../lib/cloudinary.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { ApiError } from '../utils/ApiError.js';
 export const signup=asyncHandler(async(req,res)=>{
     const {fullName, email, password}= req.body;
 
         if(!email || !password || ! fullName){
-            return res.status(400).json({message: "All fields are required"});
+            throw new ApiError(400,"All fields are required");
         }
 
         if(password.length < 6){
-            return res.status(400).json({message:"Password must be of atleast 6 characters"})
+            throw new ApiError(400,"Password must be of atleast 6 characters");
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            return res.status(400).json({ message: "Invalid email format" });
+            throw new ApiError(400,"Invalid email format");
         }
 
         const user= await User.findOne({email});
         if(user){
-            return res.status(400).json({message:"Email already exists"})
+            throw new ApiError(409,"Email already exists");
         }
 
         const salt= await bcrypt.genSalt(10);
@@ -52,23 +53,23 @@ export const signup=asyncHandler(async(req,res)=>{
             }
         }
         else{
-            return res.status(400).json({message:"invalid user data"})
+            throw new ApiError(400,"Invalid user data");
         }
 })
 
 export const login=asyncHandler(async(req,res)=>{
     const {email, password} = req.body;
     if(!email || !password){
-        return res.status(400).json({message: "All fields are required"});
+        throw new ApiError(400,"All fields are required");
     }
         const user=await User.findOne({email});
         if(!user){
-            return res.status(400).json({message:"Invalid credentials"});
+            throw new ApiError(401,"Invalid credentials");
         }
     
         const isPasswordCorrect=await bcrypt.compare(password, user.password);
         if(!isPasswordCorrect){
-            return res.status(400).json({message:"Invalid credentials"});
+            throw new ApiError(401,"Invalid credentials");
         }
     
         await generateToken(user._id,res);
@@ -87,7 +88,7 @@ export const logout=async(req,res)=>{
 export const updateProfile=asyncHandler(async(req, res)=>{
         const {profilePic}= req.body;
         if(!profilePic){
-            return res.status(400).json({message:"ProfilePic is mandatory"});
+            throw new ApiError(400,"ProfilePic is mandatory");
         }
 
         const userId=req.user._id;

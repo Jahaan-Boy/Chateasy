@@ -2,6 +2,8 @@ import cloudinary from "../lib/cloudinary.js";
 import Message from "../models/Message.js"
 import User from "../models/User.js"
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
+
 export const getAllContacts=asyncHandler(async(req, res)=>{
     const loggedInUserId = req.user._id;
     const filteredUsers = await User.find({ _id: { $ne: loggedInUserId } }).select("-password");
@@ -29,16 +31,16 @@ export const sendMessage= asyncHandler(async(req,res)=>{
         const {id:receiverId} = req.params;
     
         if (!text && !image) {
-          return res.status(400).json({ message: "Text or image is required." });
+          throw new ApiError(400,"Text or image is required.");
         }
         
         if (senderId.equals(receiverId)) {
-          return res.status(400).json({ message: "Cannot send messages to yourself." });
+          throw new ApiError(403,"Cannot send messages to yourself.");
         }
     
         const receiverExists = await User.exists({ _id: receiverId });
         if (!receiverExists) {
-          return res.status(404).json({ message: "Receiver not found." });
+          throw new ApiError(404,"Receiver not found.");
         }
     
         let imageUrl;
@@ -54,7 +56,10 @@ export const sendMessage= asyncHandler(async(req,res)=>{
             image:imageUrl
         });
     
-        res.status(201).json(newMessage)
+        res.status(201).json({
+        success: true,
+        message: newMessage
+      });
 })
 
 export const getChatPartners=asyncHandler(async(req,res)=>{
