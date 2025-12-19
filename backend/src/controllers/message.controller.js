@@ -3,12 +3,13 @@ import Message from "../models/Message.js"
 import User from "../models/User.js"
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 
 export const getAllContacts=asyncHandler(async(req, res)=>{
     const loggedInUserId = req.user._id;
     const filteredUsers = await User.find({ _id: { $ne: loggedInUserId } }).select("-password");
 
-    res.status(200).json(filteredUsers);
+    res.status(200).json(new ApiResponse(200,filteredUsers,"Contacts fetched successfully"));
 });
 
 export const getMessageByUserId= asyncHandler(async(req,res)=>{
@@ -22,7 +23,7 @@ export const getMessageByUserId= asyncHandler(async(req,res)=>{
             ]
         })
 
-        res.status(200).json(messages);
+        res.status(200).json(new ApiResponse(200,messages,"Messages fetched successfully"));
 })
 
 export const sendMessage= asyncHandler(async(req,res)=>{
@@ -56,10 +57,7 @@ export const sendMessage= asyncHandler(async(req,res)=>{
             image:imageUrl
         });
     
-        res.status(201).json({
-        success: true,
-        message: newMessage
-      });
+        res.status(201).json(new ApiResponse(201,newMessage,"Message send successfully"));
 })
 
 export const getChatPartners=asyncHandler(async(req,res)=>{
@@ -81,5 +79,5 @@ export const getChatPartners=asyncHandler(async(req,res)=>{
 
     const chatPartners = await User.find({ _id: { $in: chatPartnerIds } }).select("-password");
 
-    res.status(200).json(chatPartners);
+    res.status(200).json(new ApiResponse(200,chatPartners),"All Chat partners fetched successfully");
 })

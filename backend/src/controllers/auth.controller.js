@@ -6,6 +6,8 @@ import { sendWelcomeEmail } from '../emails/emailHandler.js';
 import cloudinary from '../lib/cloudinary.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/ApiError.js';
+import { ApiResponse } from '../utils/ApiResponse.js';
+
 export const signup=asyncHandler(async(req,res)=>{
     const {fullName, email, password}= req.body;
 
@@ -40,11 +42,11 @@ export const signup=asyncHandler(async(req,res)=>{
             const savedUser = await newUser.save();
             await generateToken(savedUser._id, res);
             
-            res.status(201).json({
+            res.status(201).json(new ApiResponse(201,{
                 fullName:newUser.fullName,
                 email:newUser.email,
                 profilePic: ""
-            })
+            }))
 
             try {
                 await sendWelcomeEmail(savedUser.email,savedUser.fullName,process.env.CLIENT_URL)
@@ -73,22 +75,24 @@ export const login=asyncHandler(async(req,res)=>{
         }
     
         await generateToken(user._id,res);
-        res.status(200).json({
+        res.status(200).json(new ApiResponse(200,{
             fullName:user.fullName,
             email:user.email,
             profilePic:user.profilePic
-        })
+        },
+        "Login successful"
+        ))
 })
 
 export const logout=async(req,res)=>{
     res.clearCookie("jwt","",{maxAge:0});
-    res.status(200).json({success:true,message:"Logout successful"})
+    res.status(200).json(new ApiResponse(200,{success:true},"Logout successful"))
 }
 
 export const updateProfile=asyncHandler(async(req, res)=>{
         const {profilePic}= req.body;
         if(!profilePic){
-            throw new ApiError(400,"ProfilePic is mandatory");
+            throw new ApiError(400,"ProfilePic is required");
         }
 
         const userId=req.user._id;
@@ -97,5 +101,5 @@ export const updateProfile=asyncHandler(async(req, res)=>{
 
         const updatedUser = await User.findByIdAndUpdate(userId,{ profilePic: uploadedProfilePic.secure_url },{ new: true });
 
-        return res.status(200).json(updatedUser);
+        return res.status(200).json(new ApiResponse(200,updatedUser,"Profile updated successfully"));
 })
