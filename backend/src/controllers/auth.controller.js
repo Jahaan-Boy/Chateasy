@@ -1,15 +1,13 @@
-import mongoose, { mongo } from 'mongoose'
 import User from '../models/User.js';
 import bcrypt from 'bcrypt'
 import { generateToken } from '../lib/utils.js';
 import 'dotenv/config'
 import { sendWelcomeEmail } from '../emails/emailHandler.js';
 import cloudinary from '../lib/cloudinary.js';
-
-export const signup=async(req,res)=>{
+import { asyncHandler } from '../utils/asyncHandler.js';
+export const signup=asyncHandler(async(req,res)=>{
     const {fullName, email, password}= req.body;
 
-    try {
         if(!email || !password || ! fullName){
             return res.status(400).json({message: "All fields are required"});
         }
@@ -56,20 +54,13 @@ export const signup=async(req,res)=>{
         else{
             return res.status(400).json({message:"invalid user data"})
         }
-    } catch (error) {
-        console.log("Error in signup controller", error.message);
-        return res.status(500).json({message:"Internal server error"});
-    }
-    
-}
+})
 
-export const login=async(req,res)=>{
+export const login=asyncHandler(async(req,res)=>{
     const {email, password} = req.body;
     if(!email || !password){
         return res.status(400).json({message: "All fields are required"});
     }
-
-    try {
         const user=await User.findOne({email});
         if(!user){
             return res.status(400).json({message:"Invalid credentials"});
@@ -86,20 +77,14 @@ export const login=async(req,res)=>{
             email:user.email,
             profilePic:user.profilePic
         })
-    } catch (error) {
-        console.log('Error while signing in:', error.message);
-        res.status(500).json({message:"Internal server error"});
-    }
-
-}
+})
 
 export const logout=async(req,res)=>{
     res.clearCookie("jwt","",{maxAge:0});
     res.status(200).json({success:true,message:"Logout successful"})
 }
 
-export const updateProfile=async(req, res)=>{
-    try {
+export const updateProfile=asyncHandler(async(req, res)=>{
         const {profilePic}= req.body;
         if(!profilePic){
             return res.status(400).json({message:"ProfilePic is mandatory"});
@@ -109,11 +94,7 @@ export const updateProfile=async(req, res)=>{
         
         const uploadedProfilePic=await cloudinary.uploader.upload(profilePic);
 
-        const updatedUser= await User.findByIdAndUpdate(userId,uploadedProfilePic.secure_url, {new:true});
+        const updatedUser = await User.findByIdAndUpdate(userId,{ profilePic: uploadedProfilePic.secure_url },{ new: true });
 
         return res.status(200).json(updatedUser);
-    } catch (error) {
-        console.log('Error in updateProfile controller');
-        return res.status(500).json({message: "Internal server error"});
-    }
-}
+})
