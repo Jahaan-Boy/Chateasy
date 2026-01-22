@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllContacts,getMessageByUserId,sendMessage,getChatPartners } from '../controllers/message.controller.js';
+import { getAllContacts,getMessagesByUserId,sendMessage,getChatPartners } from '../controllers/message.controller.js';
 import { protectRoute } from '../middlewares/auth.middleware.js';
 import { arcjetProtection } from '../middlewares/arcjet.middleware.js';
 const router= express.Router();
@@ -10,7 +10,7 @@ router.get('/contacts',getAllContacts);
 
 router.get('/chats',getChatPartners);
 
-router.get('/:id',getMessageByUserId);
+router.get('/:id',getMessagesByUserId);
 
 router.post('/send/:id',sendMessage);
 

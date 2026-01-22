@@ -2,11 +2,22 @@ import express from 'express';
 import { login, logout, signup, updateProfile } from '../controllers/auth.controller.js';
 import { protectRoute } from '../middlewares/auth.middleware.js';
 import { arcjetProtection } from '../middlewares/arcjet.middleware.js';
+import { authLimiter } from '../middlewares/authRateLimiter.middleware.js';
 const router= express.Router();
-router.use(arcjetProtection);
-router.post('/signup',signup)
+router.post('/signup', authLimiter({
+    windowMs: 15 * 60 * 1000,
+    maxAttempts: 5,
+    keyPrefix: "signup",
+    keyGenerator: (req) =>
+      `${req.body.email || "unknown"}:${req.ip}`,
+  }),signup)
 
-router.post('/login',login)
+router.post('/login',authLimiter({
+    windowMs: 60 * 60 * 1000,
+    maxAttempts: 3,
+    keyPrefix: "login",
+    keyGenerator: (req) => req.ip,
+  }),login)
 
 router.post('/logout',logout)
 

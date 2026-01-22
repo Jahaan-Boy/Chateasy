@@ -42,11 +42,12 @@ export const signup=asyncHandler(async(req,res)=>{
             const savedUser = await newUser.save();
             await generateToken(savedUser._id, res);
             
-            res.status(201).json(new ApiResponse(201,{
+            res.status(201).json({
+                _id: newUser._id,
                 fullName:newUser.fullName,
                 email:newUser.email,
                 profilePic: ""
-            }))
+            })
 
             try {
                 await sendWelcomeEmail(savedUser.email,savedUser.fullName,process.env.CLIENT_URL)
@@ -75,13 +76,12 @@ export const login=asyncHandler(async(req,res)=>{
         }
     
         await generateToken(user._id,res);
-        res.status(200).json(new ApiResponse(200,{
+        res.status(200).json({
+            _id: user._id,
             fullName:user.fullName,
             email:user.email,
             profilePic:user.profilePic
-        },
-        "Login successful"
-        ))
+        })
 })
 
 export const logout=async(req,res)=>{
