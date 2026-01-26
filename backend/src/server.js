@@ -15,17 +15,28 @@ const __dirname=path.resolve();
 
 app.set("trust proxy", 1);
 app.use(express.json({limit:'20mb'}));
-app.use(cors({origin:ENV.CLIENT_URL,credentials:true}))
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? true // allow same-origin
+        : ENV.CLIENT_URL,
+    credentials: true,
+  })
+);
 app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use('/api/messages',messageRoutes);
 app.use("/api/ai", aiRoutes);
+
 if(process.env.NODE_ENV=='production'){
   app.use(express.static(path.join(__dirname,'../frontend/dist')));
 
   app.use((req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-});
+    res.sendFile(
+      path.join(__dirname, "../frontend/dist/index.html")
+    );
+  });
 }
 
 server.listen(PORT, () => {

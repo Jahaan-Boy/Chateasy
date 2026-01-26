@@ -1,7 +1,6 @@
 import express from 'express';
 import { login, logout, signup, updateProfile } from '../controllers/auth.controller.js';
 import { protectRoute } from '../middlewares/auth.middleware.js';
-import { arcjetProtection } from '../middlewares/arcjet.middleware.js';
 import { authLimiter } from '../middlewares/authRateLimiter.middleware.js';
 const router= express.Router();
 router.post('/signup', authLimiter({
