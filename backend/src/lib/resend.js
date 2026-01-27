@@ -15,7 +15,4 @@ if (!EMAIL_FROM_NAME) {
 }
 export const resendClient= new Resend(RESEND_API_KEY);
 
-export const sender = Object.freeze({
-  email: EMAIL_FROM,
-  name: EMAIL_FROM_NAME,
-});
+export const sender = `${EMAIL_FROM_NAME.trim()} <${EMAIL_FROM.trim()}>`;
